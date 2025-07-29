@@ -1,0 +1,690 @@
+{% set pi = sections['Personal Information'] %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>{{ pi['Identification']['Title'] }} {{ pi['Identification']['First Name'] }} {{ pi['Identification']['Family Name'] }}</title>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+        td {
+            vertical-align: top;
+            padding-right: 20px;
+            padding-bottom: 5px;
+        }
+        h1 {
+            color: darkcyan;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ pi['Identification']['Title'] }} {{ pi['Identification']['First Name'] }} {{ pi['Identification']['Family Name'] }}</h1>
+    {% for key, value in pi['Identification'].items() %}
+        {% if key not in ('Title', 'First Name', 'Family Name') and value is not none %}
+            {% if key == "Country of Citizenship" %}
+                {% set countries = [] %}
+                {% for val2 in value %}
+                    {{ countries.append(val2['Country of Citizenship']) or "" }}
+                {% endfor %}
+                Country of Citizenship: {{ countries|join(', ') }}<br />
+            {% else %}
+                {{ key }}: {{ value }}<br />
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+
+    <h1>Contact Information</h1>
+
+    <h2>Address</h2>
+    <table>
+        {% for key in ('Address Type', 'Address - Line 1', 'Line 2', 'Line 3', 'City', 'Country') %}
+            <tr>
+            {% for i in range(pi['Address']|length) %}
+                <td style="padding-bottom: 0px">
+                {% if key == 'City' %}
+                    {{ pi['Address'][i]['City'] }} {{ pi['Address'][i]['Location']['Subdivision'] }} {{ pi['Address'][i]['Postal / Zip Code'] }}
+                {% elif key == 'Country' %}
+                    {{ pi['Address'][i]['Location']['Country'] }}
+                {% else %}
+                    {{ pi['Address'][i][key] }}
+                {% endif %}
+                </td>
+            {% endfor %}
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Telephone</h2>
+    <table>
+        {% for item in pi['Telephone'] %}
+            <tr>
+                <td>{{ item['Phone Type'] }}</td>
+                <td>{{ item['Country Code'] }}-{{ item['Area Code'] }}-{{ item['Telephone Number'] }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Email</h2>
+    <table>
+        <tr>
+            <td>{{ pi['Email']['Email Type'] }}</td>
+            <td>{{ pi['Email']['Email Address'] }}</td>
+        </tr>
+    </table>
+
+    <h2>Website</h2>
+    <table>
+        <tr>
+            <td>{{ pi['Website']['Website Type'] }}</td>
+            <td>{{ pi['Website']['URL'] }}</td>
+        </tr>
+    </table>
+
+    {% set edu = sections['Education']['Degrees'] %}
+    <h1>Degrees</h1>
+    <table>
+        {% for item in edu %}
+            <tr>
+                <td>
+                    {{ item['Degree Start Date'] }} - {{ item['Degree Received Date'] }}
+                </td>
+                <td>
+                    {{ item['Degree Type'] }}, {{ item['Degree Name'] }}, {{ item['Specialization'] }}, {{ item['Organization']['Organization'] }} <br />
+                    Degree Status: {{ item['Degree Status'] }}<br /><br />
+                    Supervisors: {{ item['Supervisors']['Supervisor Name'] }}, {{ item['Supervisors']['Start Date'] }} - {{ item['Supervisors']['End Date'] }}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    {% set rec = sections['Recognitions'] %}
+    <h1>Recognitions</h1>
+    <table>
+        {% for item in rec %}
+            <tr>
+                <td style="white-space: nowrap">
+                    {{ item['Effective Date'] }}
+                    {% if item['End Date'] is not none %}
+                        - {{ item['End Date'] }}
+                    {% endif%}
+                </td>
+                <td>
+                    {{ item['Recognition Name'] }}<br />
+                    {% if item['Organization'] is not none %}
+                        {{ item['Organization']['Organization'] }}<br />
+                    {% elif item['Other Organization'] is not none %}
+                        {{ item['Other Organization'] }}<br />
+                    {% endif %}
+                    {{ item['Recognition Type'] }}
+                    {% if item['Description'] is not none %}
+                        <br />{{ item['Description'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h1>Employment</h1>
+    <table>
+        {% for item in emp %}
+            {% if item['Position Title'] != 'Consultant' %}
+            <tr>
+                <td>
+                    {{ item['Start Date'] }}
+                    {% if item['End Date'] is not none %}
+                        - {{ item['End Date'] }}
+                    {% endif %}
+                </td>
+                <td>
+                    {{ item['Position Title'] }}<br />
+                    {% if 'Department' in item and item['Department'] is not none %}
+                        {{ item['Department'] }}, 
+                    {% endif %}
+                    {% if 'Faculty / School / Campus' in item and item['Faculty / School / Campus'] is not none %}
+                        {{ item['Faculty / School / Campus'] }}, 
+                    {% endif %}
+                    {% if item['Organization'] %}
+                        {{ item['Organization']['Organization'] }}<br />
+                    {% else %}
+                        {{ item['Other Organization'] }}<br />
+                    {% endif %}
+                    {% if 'Position Status' in item and item['Position Status'] is not none %}
+                        {{ item['Position Status'] }}, 
+                    {% endif %}
+                    {% if 'Position Type' in item and item['Position Type'] is not none %}
+                        {{ item['Position Type'] }}, 
+                    {% endif %}
+                    {% if 'Academic Rank' in item and item['Academic Rank'] is not none %}
+                        {{ item['Academic Rank'] }}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endif %}
+        {% endfor %}
+    </table>
+    {#
+    {% set aff = sections['Employment']['Affiliations'] %}
+    <h2>Affiliations</h2>
+    <table>
+        <tr>
+            <td>
+                {{ aff['Start Date'] }}
+            </td>
+            <td>
+                {{ aff['Position Title'] }}, {{ aff['Department'] }}, {{ aff['Organization']['Organization'] }}<br />
+                {{ aff['Activity Description'] }}
+            </td>
+        </tr>
+    </table>
+    #}
+    {% set funding = sections['Research Funding History'] %}
+    <h1>Research Funding History</h1>
+    <h3>Awarded</h3>
+    <table>
+        {% for item in funding %}
+            <tr>
+                <td style="white-space: nowrap">
+                    {{ item['Funding Start Date'] }} - {{ item['Funding End Date'] }}<br />
+                    {{ item['Funding Role'] }}
+                </td>
+                <td>
+                    {{ item['Funding Title'] }}<br /><br />
+                    {% if 'Funding Sources' in item and item['Funding Sources'] is not none %}
+                        <b>Funding Sources:</b><br/>
+                        <table>
+                        {% set srcs = item['Funding Sources'] %}
+                        {% if srcs is mapping %}
+                            {% set srcs = [srcs] %}
+                        {% endif%}
+                        {% for item2 in srcs %}
+                            <tr>
+                                <td>
+                                    {% if item2['Funding Start Date'] is not none %}
+                                        {{ item2['Funding Start Date'] }}
+                                    {% endif %}
+                                    {% if item2['Funding End Date'] is not none %}
+                                        - {{ item2['Funding End Date'] }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item2['Funding Organization'] is not none %}
+                                        {{ item2['Funding Organization'] }}<br />
+                                    {% endif %}
+                                    {% if item2['Program Name'] is not none %}
+                                        {{ item2['Program Name'] }}<br />
+                                    {% endif %}
+                                    {% if 'Total Funding' in item2 %}
+                                        Total Funding - {{ '{:,}'.format(item2['Total Funding']|int) }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </table>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h1>Courses Taught</h1>
+    <table>
+        {% for key, value in courses.items() %}
+            <tr>
+                <td>{{ value }}</td>
+                <td>{{ key }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h1>Student/Postdoctoral Supervision</h1>
+    {% for key, value in students.items() %}
+        <h3>{{ key }}</h2>
+        <table>
+            {% for item in value %}
+                <tr>
+                    <td>
+                        {{ item['Supervision Start Date'] }}
+                        {% if 'Supervision End Date' in item and item['Supervision End Date'] is not none %}
+                            - {{ item['Supervision End Date'] }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        {{ item['Student Name'] }}
+                    </td>
+                </tr>
+            {% endfor %}
+        </table>
+    {% endfor %}
+
+    <h1>Editorial Activities</h1>
+    <table>
+        {% for item in sections['Editorial Activities'] %}
+            <tr>
+                <td style="white-space: nowrap">
+                    {{ item['Start Date'] }}
+                    {% if 'End Date' in item and item['End Date'] is not none %}
+                        - {{ item['End Date'] }}
+                    {% endif %}
+                </td>
+                <td>
+                    {{ item['Role'] }}, {{ item['Publication Name'] }}
+                    {%- if 'Publication Type' in item and item['Publication Type'] is not none -%}
+                        , {{ item['Publication Type'] }}
+                    {%- endif -%}
+                    
+                    {% if 'Activity Description' in item and item['Activity Description'] is not none %}
+                        <br />{{ item['Activity Description'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h1>Journal Review Activities</h1>
+    <table>
+        {% for item in sections['Journal Review Activities'] %}
+            <tr>
+                <td>
+                    {{ item['Start Date'] }}
+                    {% if 'End Date' in item and item['End Date'] is not none %}
+                        - {{ item['End Date'] }}
+                    {% endif %}
+                </td>
+                <td>
+                    {{ item['Role'] }}, {{ item['Journal'] }}
+                    {% if 'Number of Works Reviewed / Refereed' in item and item['Number of Works Reviewed / Refereed'] is not none %}
+                        <br />Number of Works Reviewed / Refereed: {{ item['Number of Works Reviewed / Refereed'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h1>Conference Review Activities</h1>
+    <table>
+        {% for item in sections['Conference Review Activities'] %}
+            <tr>
+                <td>
+                    {{ item['Start Date'] }}
+                    {% if 'End Date' in item and item['End Date'] is not none %}
+                        - {{ item['End Date'] }}
+                    {% endif %}
+                </td>
+                <td>
+                    {{ item['Role'] }}, {{ item['Conference'] }}
+                    {%- if item['Review Type'] is not none -%}
+                        , {{ item['Review Type'] }}
+                    {%- endif -%}
+                    {% if 'Number of Works Reviewed / Refereed' in item and item['Number of Works Reviewed / Refereed'] is not none %}
+                        <br />Number of Works Reviewed / Refereed: {{ item['Number of Works Reviewed / Refereed'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h1>Research Funding Application Assessment Activities</h1>
+    <table>
+        {% for item in sections['Research Funding Application Assessment Activities'] %}
+            <tr>
+                <td>
+                    {{ item['Start Date'] }}
+                    {% if 'End Date' in item and item['End Date'] is not none %}
+                        - {{ item['End Date'] }}
+                    {% endif %}
+                </td>
+                <td>
+                    {{ item['Funding Reviewer Role'] }}
+                    {%- if 'Committee Name' in item and item['Committee Name'] is not none -%}
+                        , {{ item['Committee Name'] }}
+                    {%- endif -%}
+                    {%- if 'Reviewer Type' in item and item['Reviewer Type'] is not none -%}
+                        , {{ item['Reviewer Type'] }}
+                    {%- endif -%}
+                    {%- if 'Organization' in item and item['Organization'] is not none -%}
+                        , {{ item['Organization']['Organization'] }}
+                    {%- else -%}
+                        , {{ item['Other Organization'] }}
+                    {%- endif -%}
+                    {% if 'Number of Applications Assessed' in item and item['Number of Applications Assessed'] is not none %}
+                        <br />Number of Applications Assessed: {{ item['Number of Applications Assessed'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h1>Community and Volunteer Activities</h1>
+    <table>
+        {% for item in sections['Community and Volunteer Activities'] %}
+            <tr>
+                <td>
+                    {% if 'Start Date' in item and item['Start Date'] is not none %}
+                        {{ item['Start Date'] }}
+                    {% endif %}
+                    {% if 'End Date' in item and item['End Date'] is not none %}
+                        - {{ item['End Date'] }}
+                    {% endif %}
+                </td>
+                <td>
+                    {{ item['Role'] }}, 
+                    {% if item['Organization'] is not none %}
+                        {{ item['Organization']['Organization'] }}
+                    {% else %}
+                        {{ item['Other Organization'] }}
+                    {% endif %}
+                    {% if item['Activity Description'] is not none %}
+                        <br />{{ item['Activity Description'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h1>Committee Memberships</h1>
+    <table>
+        {% for item in sections['Committee Memberships'] %}
+            <tr>
+                <td>
+                    {% if 'Membership Start Date' in item and item['Membership Start Date'] is not none %}
+                        {{ item['Membership Start Date'] }}
+                    {% endif %}
+                    {% if 'Membership End Date' in item and item['Membership End Date'] is not none %}
+                        - {{ item['Membership End Date'] }}
+                    {% endif %}
+                </td>
+                <td>
+                    {{ item['Role'] }}, {{ item['Committee Name'] }}
+                    {%- if item['Organization'] is not none -%}
+                        , {{ item['Organization']['Organization'] }}
+                    {%- endif -%}
+                    {%- if item['Other Organization'] is not none -%}
+                        , {{ item['Other Organization'] }}
+                    {%- endif -%}
+                    {% if item['Description'] is not none %}
+                        <br />{{ item['Description'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h1>Other Memberships</h1>
+    <table>
+        {% for item in sections['Other Memberships'] %}
+            <tr>
+                <td>
+                    {% if 'Membership Start Date' in item and item['Membership Start Date'] is not none %}
+                        {{ item['Membership Start Date'] }}
+                    {% endif %}
+                    {% if 'Membership End Date' in item and item['Membership End Date'] is not none %}
+                        - {{ item['Membership End Date'] }}
+                    {% endif %}
+                </td>
+                <td>
+                    {{ item['Role'] }}, {{ item['Committee Name'] }}
+                    {% if 'Organization' in item and item['Organization'] is not none %}
+                        {{ item['Organization']['Organization'] }}
+                    {% else %}
+                        {{ item['Other Organization'] }}
+                    {% endif %}
+                    {% if item['Description'] is not none %}
+                        <br />{{ item['Description'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h1>Presentations</h1>
+    <table>
+        {% for item in sections['Presentations'] %}
+            <tr>
+                <td>{{ loop.index }}.</td>
+                <td>
+                    ({{ item['Presentation Year'] }}). {{ item['Presentation Title'] }}, {{ item['Conference / Event Name'] }}
+                    {%- if item['City'] is not none -%}
+                        , {{ item['City'] }}
+                    {%- endif -%}
+                    {%- if item['Location'] is not none -%}
+                    , {{ item['Location'] }}
+                    {%- endif -%}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h1>Broadcast Interviews</h1>
+    <table>
+        {% for item in sections['Broadcast Interviews'] %}
+            <tr>
+                <td>
+                    {% if 'First Broadcast Date' in item and item['First Broadcast Date'] is not none %}
+                        {{ item['First Broadcast Date'] }}
+                    {% endif %}
+                </td>
+                <td>
+                    {{ item['Topic'] }}, {{ item['Program'] }}
+                    {% if item['Network'] is not none %}
+                        <br />{{ item['Network'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h1>Text Interviews</h1>
+    <table>
+        {% for item in sections['Text Interviews'] %}
+            <tr>
+                <td>
+                    {% if 'Publication Date' in item and item['Publication Date'] is not none %}
+                        {{ item['Publication Date'] }}
+                    {% endif %}
+                </td>
+                <td>
+                    {{ item['Topic'] }}
+                    {%- if item['Forum'] is not none -%}
+                        , {{ item['Forum'] }}
+                    {%- endif -%}
+                    {% if item['URL'] is not none %}
+                        <br />{{ item['URL'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h1>Publications</h1>
+    <h3>Journal Articles</h3>
+    <table>
+        {% for item in sections['Publications']['Journal Articles'] %}
+            <tr>
+                <td>{{ loop.index }}.</td>
+                <td>
+                    {{ item['Authors'] }}. ({{ item['Year'] }}). {{ item['Article Title'] }}. {{ item['Journal'] }}. 
+                    {%- if item['Volume'] is not none -%}
+                        {{ item['Volume'] }}
+                    {%- endif -%}
+                    {%- if item['Issue'] is not none -%}
+                        ({{ item['Issue'] }})
+                    {%- endif -%}
+                    {%- if item['Page Range'] is not none -%}
+                        : {{ item['Page Range'] }}. 
+                    {%- endif -%}
+                    {% if 'URL' in item and item['URL'] is not none %}
+                        {{ item['URL'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    {#
+    <h3>Books</h3>
+    <table>
+        {% for item in sections['Publications']['Books'] %}
+            <tr>
+                <td>{{ loop.index }}.</td>
+                <td>
+                    {%- if item['Authors'] != 'n/a' and item['Authors'] != '.' -%}
+                    {{ item['Authors'] }}. 
+                    {%- endif -%}
+                    ({{ item['Year'] }}). {{ item['Book Title'] }}. {{ item['Editors'] }}. {{ item['Publishing Status'] }}. 
+                    {% if 'Publisher' in item and item['Publisher'] is not none %}
+                        {{ item['Publisher'] }}.
+                    {% endif %}
+                    {% if 'Publication Location' in item and item['Publication Location'] is not none %}
+                        {{ item['Publication Location'] }}
+                    {% endif %}
+                    {% if 'URL' in item and item['URL'] is not none %}
+                        {{ item['URL'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+    #}
+
+    <h3>Book Chapters</h3>
+    <table>
+        {% for item in sections['Publications']['Book Chapters'] %}
+            <tr>
+                <td>{{ loop.index }}.</td>
+                <td>
+                    {{ item['Authors'] }}. ({{ item['Year'] }}). {{ item['Chapter Title'] }}. {{ item['Book Title'] }}. {{ item['Publishing Status'] }}. 
+                    {% if 'Publisher' in item and item['Publisher'] is not none %}
+                        {{ item['Publisher'] }}.
+                    {% endif %}
+                    {% if 'Publication Location' in item and item['Publication Location'] is not none %}
+                        {{ item['Publication Location'] }}
+                    {% endif %}
+                    {% if 'URL' in item and item['URL'] is not none %}
+                        {{ item['URL'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h3>Encyclopedia Entries</h3>
+    <table>
+        {% for item in sections['Publications']['Encyclopedia Entries'] %}
+            <tr>
+                <td>{{ loop.index }}.</td>
+                <td>
+                    {{ item['Authors'] }}. ({{ item['Year'] }}). {{ item['Entry Title'] }}. {{ item['Encyclopedia Name'] }}. {{ item['Page Range'] }}. 
+                    {% if 'Publisher' in item and item['Publisher'] is not none %}
+                        {{ item['Publisher'] }}.
+                    {% endif %}
+                    {% if 'Publication Location' in item and item['Publication Location'] is not none %}
+                        {{ item['Publication Location'] }}
+                    {% endif %}
+                    {% if 'URL' in item and item['URL'] is not none %}
+                        {{ item['URL'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h3>Magazine Entries</h3>
+    <table>
+        {% for item in sections['Publications']['Magazine Entries'] %}
+            <tr>
+                <td>{{ loop.index }}.</td>
+                <td>
+                    {{ item['Authors'] }}. ({{ item['Year'] }}). {{ item['Article Title'] }}. {{ item['Magazine Name'] }}. 
+                    {% if 'Volume' in item and item['Volume'] is not none %}
+                        {{ item['Volume'] }} 
+                    {% endif %}
+                    {% if 'Issue' in item and item['Issue'] is not none %}
+                        ({{ item['Issue'] }})
+                    {% endif %}
+                    {% if 'Page Range' in item and item['Page Range'] is not none %}
+                        {{ item['Page Range'] }}.
+                    {% endif %}
+                    {% if 'Publisher' in item and item['Publisher'] is not none %}
+                        {{ item['Publisher'] }}.
+                    {% endif %}
+                    {% if 'Publication Location' in item and item['Publication Location'] is not none %}
+                        {{ item['Publication Location'] }}
+                    {% endif %}
+                    {% if 'URL' in item and item['URL'] is not none %}
+                        {{ item['URL'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    <h3>Reports</h3>
+    <table>
+        {% for item in sections['Publications']['Reports'] %}
+            <tr>
+                <td>{{ loop.index }}.</td>
+                <td>
+                    {{ item['Authors'] }}. ({{ item['Year Submitted'] }}). {{ item['Report Title'] }}.
+                    {% if 'Organization' in item and item['Organization'] is not none %}
+                        {{ item['Organization']['Organization'] }}
+                    {% endif %}
+                    {% if 'Other Organization' in item and item['Other Organization'] is not none %}
+                        {{ item['Other Organization'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+    {#
+    <h3>Working Papers</h3>
+    <table>
+        {% for item in sections['Publications']['Working Papers'] %}
+            <tr>
+                <td>{{ loop.index }}.</td>
+                <td>
+                    {{ item['Authors'] }}. ({{ item['Year Completed'] }}). {{ item['Paper Title'] }}.
+                    {% if 'Organization' in item and item['Organization'] is not none %}
+                        {{ item['Organization']['Organization'] }}
+                    {% endif %}
+                    {% if 'Other Organization' in item and item['Other Organization'] is not none %}
+                        {{ item['Other Organization'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+    #}
+
+    <h3>Conference Publications</h3>
+    <table>
+        {% for item in sections['Publications']['Conference Publications'] %}
+            <tr>
+                <td>{{ loop.index }}.</td>
+                <td>
+                    {{ item['Authors'] }}. ({{ item['Year'] }}). {{ item['Publication Title'] }}.
+                    {% if 'Published In' in item and item['Published In'] is not none %}
+                        {{ item['Published In'] }}.
+                    {% endif %}
+                    {% if 'Conference Name' in item and item['Conference Name'] is not none %}
+                        {{ item['Conference Name'] }}.
+                    {% endif %}
+                    {% if 'City' in item and item['City'] is not none %}
+                        {{ item['City'] }},
+                    {% endif %}
+                    {% if 'Location' in item and item['Location'] is not none %}
+                        {{ item['Location'] }}
+                    {% endif %}
+                    {% if 'Page Range' in item and item['Page Range'] is not none %}
+                        ({{ item['Page Range'] }})
+                    {% endif %}
+                    {% if 'URL' in item and item['URL'] is not none %}
+                        {{ item['URL'] }}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

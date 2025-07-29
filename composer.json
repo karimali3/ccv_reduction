@@ -1,0 +1,5 @@
+{
+    "require": {
+        "byjg/jinja-php": "^4.9"
+    }
+}

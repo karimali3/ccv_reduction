@@ -1,0 +1,5 @@
+.venv/
+vendor/
+node_modules/
+*.pdf
+*.xml

@@ -1,0 +1,53 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "65e2fa4156897af38679f3430ca8ee82",
+    "packages": [
+        {
+            "name": "byjg/jinja-php",
+            "version": "4.9.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/byjg/php-jinja.git",
+                "reference": "e5575c00d44d1cafb754bc2404ffff7cddf14b3c"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/byjg/php-jinja/zipball/e5575c00d44d1cafb754bc2404ffff7cddf14b3c",
+                "reference": "e5575c00d44d1cafb754bc2404ffff7cddf14b3c",
+                "shasum": ""
+            },
+            "require-dev": {
+                "phpunit/phpunit": "5.7.*|7.4.*|^9.5"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "ByJG\\JinjaPhp\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Jinja for PHP",
+            "support": {
+                "issues": "https://github.com/byjg/php-jinja/issues",
+                "source": "https://github.com/byjg/php-jinja/tree/4.9.0"
+            },
+            "time": "2023-05-21T22:30:59+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": [],
+    "plugin-api-version": "2.3.0"
+}
