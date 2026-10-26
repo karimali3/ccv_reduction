@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/filepond@4.31.1/dist/filepond.min.css">
+        <link rel="stylesheet" href="style.css">
+        <title>Convert CCV Export to minimized version</title>
+        <style>
+            html, body {
+                height: 100%;
+                margin: 0;
+                background: white;
+                color: black;
+            }
+            #save-pdf {
+                margin: 0.5rem;
+                padding: 0.5rem 0.75rem;
+                background: #60a5fa;
+                color: white;
+                border: 0;
+                cursor: pointer;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="m-auto p-8 w-full h-1/6 columns-1 border">
+            <div>
+                <input type="file" class="filepond" name="ccv">
+            </div>
+        </div>
+
+        <div class="m-auto p-2 w-full h-5/6" id="preview">
+            <div class="hidden text-center" id="processing">
+                <span>Processing XML...</span>
+                <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><style>.spinner_P7sC{transform-origin:center;animation:spinner_svv2 .75s infinite linear}@keyframes spinner_svv2{100%{transform:rotate(360deg)}}</style><path d="M10.14,1.16a11,11,0,0,0-9,8.92A1.59,1.59,0,0,0,2.46,12,1.52,1.52,0,0,0,4.11,10.7a8,8,0,0,1,6.66-6.61A1.42,1.42,0,0,0,12,2.69h0A1.57,1.57,0,0,0,10.14,1.16Z" class="spinner_P7sC"/></svg>
+            </div>
+            <p class="w-full hidden" id="msg"></p>
+            <button type="button" id="save-pdf" class="hidden">Save as PDF</button>
+            <p class="p-2 hidden" id="print-hint">In the print dialog, choose Save as PDF.</p>
+            <iframe id="preview-frame" class="w-full h-5/6 hidden" title="CV preview"></iframe>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/nunjucks@3.2.4/browser/nunjucks.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/filepond@4.31.1/dist/filepond.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/filepond-plugin-file-validate-type@1.2.9/dist/filepond-plugin-file-validate-type.min.js"></script>
+        <script src="convert.js"></script>
+        <script>
+            var templatePromise = fetch("cv_tmpl.html").then(function (response) {
+                if (!response.ok) throw new Error("Could not load the CV template.");
+                return response.text();
+            });
+
+            function showMessage(text) {
+                var msg = document.querySelector("#msg");
+                msg.textContent = text;
+                msg.classList.remove("hidden");
+            }
+
+            function resetPreview() {
+                document.querySelector("#msg").classList.add("hidden");
+                document.querySelector("#save-pdf").classList.add("hidden");
+                document.querySelector("#print-hint").classList.add("hidden");
+                document.querySelector("#preview-frame").classList.add("hidden");
+            }
+
+            FilePond.registerPlugin(FilePondPluginFileValidateType);
+            var pond = FilePond.create(document.querySelector("input"), {
+                instantUpload: false,
+                allowMultiple: false,
+                acceptedFileTypes: ["application/xml", "text/xml"],
+                labelIdle: 'Drag & Drop CCV XML export or <span class="filepond--label-action">Browse</span>'
+            });
+
+            pond.on("addfile", function (error, item) {
+                if (error) {
+                    showMessage(error.body || "Could not read that file.");
+                    return;
+                }
+                document.querySelector("#processing").classList.remove("hidden");
+                resetPreview();
+                var reader = new FileReader();
+                reader.onload = function () {
+                    templatePromise.then(function (template) {
+                        var data = CcvConvert.convertCcv(reader.result);
+                        var html = CcvConvert.withPrintCss(CcvConvert.renderCv(nunjucks, template, data));
+                        var frame = document.querySelector("#preview-frame");
+                        frame.srcdoc = html;
+                        frame.classList.remove("hidden");
+                        document.querySelector("#save-pdf").classList.remove("hidden");
+                        document.querySelector("#print-hint").classList.remove("hidden");
+                    }).catch(function (err) {
+                        showMessage(err && err.message ? err.message : "Could not convert that file.");
+                    }).finally(function () {
+                        document.querySelector("#processing").classList.add("hidden");
+                    });
+                };
+                reader.onerror = function () {
+                    document.querySelector("#processing").classList.add("hidden");
+                    showMessage("Could not read that file.");
+                };
+                reader.readAsText(item.file);
+            });
+
+            document.querySelector("#save-pdf").addEventListener("click", function () {
+                var frame = document.querySelector("#preview-frame");
+                if (!frame.contentWindow) return;
+                frame.contentWindow.focus();
+                frame.contentWindow.print();
+            });
+        </script>
+    </body>
+</html>

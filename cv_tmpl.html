@@ -7,6 +7,8 @@
     <style>
         body {
             font-family: sans-serif;
+            background: white;
+            color: black;
         }
         td {
             vertical-align: top;
@@ -21,11 +23,15 @@
 <body>
     <h1>{{ pi['Identification']['Title'] }} {{ pi['Identification']['First Name'] }} {{ pi['Identification']['Family Name'] }}</h1>
     {% for key, value in pi['Identification'].items() %}
-        {% if key not in ('Title', 'First Name', 'Family Name') and value is not none %}
+        {% if key not in ['Title', 'First Name', 'Family Name'] and value is not none %}
             {% if key == "Country of Citizenship" %}
                 {% set countries = [] %}
                 {% for val2 in value %}
+                    {% if countries.append is defined %}
                     {{ countries.append(val2['Country of Citizenship']) or "" }}
+                    {% else %}
+                    {{ countries.push(val2['Country of Citizenship']) and "" }}
+                    {% endif %}
                 {% endfor %}
                 Country of Citizenship: {{ countries|join(', ') }}<br />
             {% else %}
@@ -38,7 +44,7 @@
 
     <h2>Address</h2>
     <table>
-        {% for key in ('Address Type', 'Address - Line 1', 'Line 2', 'Line 3', 'City', 'Country') %}
+        {% for key in ['Address Type', 'Address - Line 1', 'Line 2', 'Line 3', 'City', 'Country'] %}
             <tr>
             {% for i in range(pi['Address']|length) %}
                 <td style="padding-bottom: 0px">
