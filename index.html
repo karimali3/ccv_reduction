@@ -36,10 +36,12 @@
             </div>
             <p class="w-full hidden" id="msg"></p>
             <button type="button" id="save-pdf" class="hidden">Save as PDF</button>
-            <p class="p-2 hidden" id="print-hint">In the print dialog, choose Save as PDF.</p>
             <iframe id="preview-frame" class="w-full h-5/6 hidden" title="CV preview"></iframe>
         </div>
 
+        <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.12/build/pdfmake.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/pdfmake@0.2.12/build/vfs_fonts.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/html-to-pdfmake@2.5.13/browser.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/nunjucks@3.2.4/browser/nunjucks.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/filepond@4.31.1/dist/filepond.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/filepond-plugin-file-validate-type@1.2.9/dist/filepond-plugin-file-validate-type.min.js"></script>
@@ -49,6 +51,7 @@
                 if (!response.ok) throw new Error("Could not load the CV template.");
                 return response.text();
             });
+            var pdfFilename = "cv.pdf";
 
             function showMessage(text) {
                 var msg = document.querySelector("#msg");
@@ -59,7 +62,6 @@
             function resetPreview() {
                 document.querySelector("#msg").classList.add("hidden");
                 document.querySelector("#save-pdf").classList.add("hidden");
-                document.querySelector("#print-hint").classList.add("hidden");
                 document.querySelector("#preview-frame").classList.add("hidden");
             }
 
@@ -86,8 +88,8 @@
                         var frame = document.querySelector("#preview-frame");
                         frame.srcdoc = html;
                         frame.classList.remove("hidden");
+                        pdfFilename = item.file.name.replace(/\.xml$/i, "") + ".pdf";
                         document.querySelector("#save-pdf").classList.remove("hidden");
-                        document.querySelector("#print-hint").classList.remove("hidden");
                     }).catch(function (err) {
                         showMessage(err && err.message ? err.message : "Could not convert that file.");
                     }).finally(function () {
@@ -101,11 +103,84 @@
                 reader.readAsText(item.file);
             });
 
+            function isBlankBlock(item) {
+                return !!item && (item.nodeName === "BR" || (typeof item.text === "string" && item.text.trim() === "" && !item.table));
+            }
+
+            function tunePdfList(items, dropBreaks) {
+                for (var i = items.length - 1; i >= 0; i--) {
+                    if (dropBreaks && isBlankBlock(items[i])) items.splice(i, 1);
+                    else tunePdfNodes(items[i]);
+                }
+            }
+
+            function tunePdfNodes(node) {
+                if (!node) return;
+                if (Array.isArray(node)) {
+                    tunePdfList(node, true);
+                    return;
+                }
+                if (typeof node !== "object") return;
+                if (node.table && node.table.body && node.table.body.length) {
+                    node.layout = "noBorders";
+                    var columns = node.table.body[0].length;
+                    node.table.widths = [];
+                    for (var i = 0; i < columns; i++) {
+                        node.table.widths.push(i === 0 && columns > 1 ? "auto" : "*");
+                    }
+                    node.table.body.forEach(function (row) {
+                        row.forEach(tunePdfNodes);
+                    });
+                }
+                if (Array.isArray(node.stack)) tunePdfList(node.stack, true);
+                if (Array.isArray(node.ul)) tunePdfList(node.ul, true);
+                if (Array.isArray(node.ol)) tunePdfList(node.ol, true);
+                if (Array.isArray(node.text)) tunePdfList(node.text, false);
+            }
+
+            function downloadBlob(blob, filename) {
+                var url = URL.createObjectURL(blob);
+                var link = document.createElement("a");
+                link.href = url;
+                link.download = filename;
+                link.click();
+                URL.revokeObjectURL(url);
+            }
+
             document.querySelector("#save-pdf").addEventListener("click", function () {
                 var frame = document.querySelector("#preview-frame");
-                if (!frame.contentWindow) return;
-                frame.contentWindow.focus();
-                frame.contentWindow.print();
+                var button = document.querySelector("#save-pdf");
+                if (!frame.contentDocument || !frame.contentDocument.body || button.disabled) return;
+                button.disabled = true;
+                button.textContent = "Saving PDF...";
+                try {
+                    var content = htmlToPdfmake(frame.contentDocument.body.innerHTML, {
+                        window: frame.contentWindow,
+                        removeExtraBlanks: true,
+                        defaultStyles: {
+                            h1: { fontSize: 16, bold: true, color: "#008b8b", margin: [0, 9, 0, 5], marginBottom: "" },
+                            h2: { fontSize: 12, bold: true, color: "#000000", margin: [0, 8, 0, 4], marginBottom: "" },
+                            h3: { fontSize: 9, bold: true, color: "#000000", margin: [0, 7, 0, 3], marginBottom: "" },
+                            td: { margin: [0, 1, 10, 2] },
+                            table: { margin: [0, 1, 0, 5] }
+                        }
+                    });
+                    tunePdfNodes(content);
+                    pdfMake.createPdf({
+                        pageSize: "LETTER",
+                        pageMargins: [36, 36, 36, 36],
+                        defaultStyle: { fontSize: 8 },
+                        content: content
+                    }).getBlob(function (blob) {
+                        downloadBlob(blob, pdfFilename);
+                        button.disabled = false;
+                        button.textContent = "Save as PDF";
+                    });
+                } catch (err) {
+                    button.disabled = false;
+                    button.textContent = "Save as PDF";
+                    showMessage(err && err.message ? err.message : "Could not create the PDF.");
+                }
             });
         </script>
     </body>

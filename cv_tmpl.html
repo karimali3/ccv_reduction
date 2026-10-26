@@ -507,7 +507,7 @@
     <table>
         {% for item in sections['Publications']['Journal Articles'] %}
             <tr>
-                <td>{{ loop.index }}.</td>
+                <td>J{{ loop.index }}.</td>
                 <td>
                     {{ item['Authors'] }}. ({{ item['Year'] }}). {{ item['Article Title'] }}. {{ item['Journal'] }}. 
                     {%- if item['Volume'] is not none -%}
@@ -667,7 +667,7 @@
     <table>
         {% for item in sections['Publications']['Conference Publications'] %}
             <tr>
-                <td>{{ loop.index }}.</td>
+                <td>C{{ loop.index }}.</td>
                 <td>
                     {{ item['Authors'] }}. ({{ item['Year'] }}). {{ item['Publication Title'] }}.
                     {% if 'Published In' in item and item['Published In'] is not none %}

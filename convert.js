@@ -201,7 +201,7 @@
   }
 
   const PRINT_CSS =
-    "@page { size: letter; margin: 0.5in; } body { font-size: 9px; }";
+    "@page { size: letter; margin: 0.5in; }";
 
   function renderCv(nunjucksLib, template, data) {
     const env = new nunjucksLib.Environment(null, {
