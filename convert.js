@@ -182,6 +182,11 @@
     if (sections["Other Memberships"] != null && !Array.isArray(sections["Other Memberships"])) {
       sections["Other Memberships"] = [sections["Other Memberships"]];
     }
+    // A single phone is one object. The template loops this list; Nunjucks does not iterate a plain object, which leaves an empty table.
+    const personal = sections["Personal Information"];
+    if (personal && personal["Telephone"] != null && !Array.isArray(personal["Telephone"])) {
+      personal["Telephone"] = [personal["Telephone"]];
+    }
     const publications = sections["Publications"];
     if (
       publications &&

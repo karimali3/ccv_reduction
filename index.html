@@ -107,9 +107,15 @@
                 return !!item && (item.nodeName === "BR" || (typeof item.text === "string" && item.text.trim() === "" && !item.table));
             }
 
+            function isEmptyTable(item) {
+                if (!item || !item.table) return false;
+                var body = item.table.body;
+                return !body || !body.length || !body[0] || !body[0].length;
+            }
+
             function tunePdfList(items, dropBreaks) {
                 for (var i = items.length - 1; i >= 0; i--) {
-                    if (dropBreaks && isBlankBlock(items[i])) items.splice(i, 1);
+                    if (isEmptyTable(items[i]) || (dropBreaks && isBlankBlock(items[i]))) items.splice(i, 1);
                     else tunePdfNodes(items[i]);
                 }
             }
